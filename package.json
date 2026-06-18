@@ -1,0 +1,9 @@
+{
+  "name": "leva-brasa",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node -e \"console.log('Leva Brasa pronto para publicar')\"",
+    "start": "node serve.js"
+  }
+}

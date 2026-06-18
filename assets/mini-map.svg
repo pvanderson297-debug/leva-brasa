@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" role="img" aria-label="Mapa com Claremorris, regiao e aeroportos">
+  <defs>
+    <linearGradient id="land" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e8f4ec"/>
+      <stop offset="1" stop-color="#fff4ce"/>
+    </linearGradient>
+    <filter id="pinShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#172126" flood-opacity=".22"/>
+    </filter>
+  </defs>
+  <rect width="900" height="520" rx="30" fill="url(#land)"/>
+  <path d="M36 372 C126 300 220 336 327 292 C431 249 492 126 613 151 C718 173 767 229 864 190" fill="none" stroke="#ffffff" stroke-width="30" stroke-linecap="round" opacity=".82"/>
+  <path d="M43 410 C153 365 247 397 351 344 C458 291 544 344 644 298 C738 254 795 315 872 281" fill="none" stroke="#91bf88" stroke-width="19" stroke-linecap="round" opacity=".55"/>
+  <circle cx="380" cy="238" r="118" fill="#148a55" opacity=".12"/>
+  <circle cx="380" cy="238" r="80" fill="#148a55" opacity=".13"/>
+  <circle cx="380" cy="238" r="43" fill="#148a55" opacity=".16"/>
+  <path d="M380 238 C502 210 594 228 692 183 C760 152 810 116 850 82" fill="none" stroke="#f5c542" stroke-width="8" stroke-linecap="round" stroke-dasharray="14 16"/>
+  <path d="M380 238 C490 279 560 334 652 392 C720 435 787 459 848 475" fill="none" stroke="#f5c542" stroke-width="8" stroke-linecap="round" stroke-dasharray="14 16"/>
+  <path d="M380 238 C335 325 260 386 174 442" fill="none" stroke="#f5c542" stroke-width="8" stroke-linecap="round" stroke-dasharray="14 16"/>
+  <circle cx="380" cy="238" r="7" fill="#172126"/>
+  <g font-family="Inter, Arial, sans-serif" font-size="22" font-weight="800" fill="#172126">
+    <text x="402" y="246">Claremorris</text>
+    <text x="126" y="126">Castlebar</text>
+    <text x="568" y="136">Swinford</text>
+    <text x="496" y="348">Knock</text>
+    <text x="138" y="366">Ballinrobe</text>
+    <text x="680" y="90">Dublin Airport</text>
+    <text x="662" y="474">Cork Airport</text>
+    <text x="80" y="456">Shannon Airport</text>
+    <text x="524" y="270">Ireland West</text>
+  </g>
+  <g fill="#148a55" filter="url(#pinShadow)">
+    <circle cx="150" cy="138" r="12"/>
+    <circle cx="546" cy="142" r="12"/>
+    <circle cx="490" cy="330" r="12"/>
+    <circle cx="176" cy="340" r="12"/>
+  </g>
+  <g fill="#22333a" filter="url(#pinShadow)">
+    <rect x="642" y="48" width="28" height="28" rx="7"/>
+    <rect x="626" y="432" width="28" height="28" rx="7"/>
+    <rect x="50" y="420" width="28" height="28" rx="7"/>
+    <rect x="506" y="236" width="28" height="28" rx="7"/>
+  </g>
+  <path d="M380 170 C342 170 312 200 312 238 C312 292 380 352 380 352 C380 352 448 292 448 238 C448 200 418 170 380 170 Z" fill="#f5c542" filter="url(#pinShadow)"/>
+  <circle cx="380" cy="238" r="24" fill="#172126"/>
+  <path d="M64 48 L274 48" stroke="#172126" stroke-width="8" stroke-linecap="round"/>
+  <path d="M64 48 L164 48" stroke="#f5c542" stroke-width="8" stroke-linecap="round"/>
+  <text x="64" y="78" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="800" fill="#657277">rotas locais e aeroportos</text>
+</svg>

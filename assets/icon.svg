@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#148a55"/>
+  <circle cx="370" cy="138" r="74" fill="#f5c542"/>
+  <path d="M92 340 C132 276 172 240 247 240 L313 240 C362 240 399 263 424 308 L452 360 L69 360 Z" fill="#172126"/>
+  <rect x="62" y="340" width="396" height="92" rx="43" fill="#22333a"/>
+  <path d="M155 280 L252 280 C281 280 302 299 314 330 L122 330 C130 306 141 290 155 280 Z" fill="#e8f4ec"/>
+  <path d="M335 280 L366 280 C389 280 406 298 416 330 L337 330 Z" fill="#e8f4ec"/>
+  <circle cx="160" cy="434" r="41" fill="#101719"/>
+  <circle cx="160" cy="434" r="16" fill="#ffffff"/>
+  <circle cx="362" cy="434" r="41" fill="#101719"/>
+  <circle cx="362" cy="434" r="16" fill="#ffffff"/>
+  <text x="78" y="198" font-family="Arial, sans-serif" font-size="104" font-weight="900" fill="#ffffff">LB</text>
+</svg>
