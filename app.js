@@ -60,9 +60,10 @@ const bagFee = 0;
 const airportFee = 8;
 const scheduleFee = 5;
 const commissionRate = 0.15;
-const paymentName = "Leva Brasa";
-const paymentIban = "COLOCAR_IBAN_AQUI";
-const paymentPhone = "COLOCAR_TELEFONE_AQUI";
+const paymentName = "Vanderson Pereira da Silva";
+const paymentBank = "AIB";
+const paymentIban = "IE31AIBK93744419731014";
+const paymentPhone = "+353 89 415 1012";
 const legacyDriversStorageKey = "bora40Drivers";
 const legacyUsersStorageKey = "bora40Users";
 const driversStorageKey = "levaBrasaDrivers";
@@ -621,7 +622,7 @@ function formatDateTime(value) {
 }
 
 function formatPaymentDetails(trip) {
-  return `Pagamento Leva Brasa\nValor total: EUR ${trip.clientPrice}\nNome: ${paymentName}\nIBAN: ${paymentIban}\nRevolut/Telefone: ${paymentPhone}\nReferencia: ${paymentReference(trip)}`;
+  return `Pagamento Leva Brasa\nValor total: EUR ${trip.clientPrice}\nNome: ${paymentName}\nBanco: ${paymentBank}\nIBAN: ${paymentIban}\nTelefone: ${paymentPhone}\nReferencia: ${paymentReference(trip)}`;
 }
 
 function renderClientPaymentBox(trip) {
@@ -631,8 +632,9 @@ function renderClientPaymentBox(trip) {
       <span>Valor total da viagem: <b>EUR ${trip.clientPrice}</b></span>
       <p>Faca o pagamento por transferencia antes da viagem.</p>
       <span>Nome: <b>${escapeHtml(paymentName)}</b></span>
+      <span>Banco: <b>${escapeHtml(paymentBank)}</b></span>
       <span>IBAN: <b>${escapeHtml(paymentIban)}</b></span>
-      <span>Revolut/Telefone: <b>${escapeHtml(paymentPhone)}</b></span>
+      <span>Telefone: <b>${escapeHtml(paymentPhone)}</b></span>
       <span>Referencia: <b>${escapeHtml(paymentReference(trip))}</b></span>
       <div class="payment-actions">
         <button type="button" data-payment-action="copy" data-trip-id="${trip.id}">Copiar dados de pagamento</button>
