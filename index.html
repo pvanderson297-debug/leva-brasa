@@ -118,7 +118,6 @@
             <p id="noteText">Base EUR 8 + EUR 1/km. Minimo EUR 12.</p>
             <div class="price-split">
               <span>Cliente paga <b id="clientPriceText">EUR 29</b></span>
-              <span>Motorista recebe <b id="driverPriceText">EUR 23</b></span>
             </div>
           </section>
 
@@ -210,6 +209,10 @@
               <span>Placa do veiculo</span>
               <input id="vehiclePlate" type="text" placeholder="Ex: 231-MO-1234" />
             </label>
+            <label class="field">
+              <span>IBAN do motorista</span>
+              <input id="driverIban" type="text" placeholder="IE..." />
+            </label>
           </div>
           <a id="signupLink" class="signup-action" href="#" rel="noreferrer">Enviar cadastro</a>
           <div class="section-heading compact-heading">
@@ -230,7 +233,7 @@
         <section class="driver-panel">
           <div class="section-heading">
             <strong>Area do motorista</strong>
-            <span>Entrar, aceitar corridas e conversar com o suporte.</span>
+            <span>Entrar, executar corridas atribuidas e conversar com o suporte.</span>
           </div>
           <div id="driverLogin" class="driver-login">
             <label class="field">
@@ -246,7 +249,7 @@
           <div id="driverContent" class="driver-content">
             <div class="section-heading compact-heading">
               <strong>Corridas do motorista</strong>
-              <span>Corridas disponiveis e viagens aceitas por voce.</span>
+              <span>Viagens atribuidas pelo suporte para voce.</span>
             </div>
             <div id="driverTripsList" class="trips-list">
               <span class="empty-state">Nenhuma corrida disponivel.</span>

@@ -715,7 +715,35 @@ input:focus {
   font-weight: 800;
 }
 
+.trip-money {
+  grid-template-columns: 1fr;
+}
+
 .trip-money b {
+  color: var(--ink);
+}
+
+.admin-driver-payment {
+  display: grid;
+  gap: 7px;
+  padding: 11px;
+  border: 1px solid #dbe9da;
+  border-radius: 14px;
+  background: #fffaf0;
+}
+
+.admin-driver-payment strong,
+.admin-driver-payment span {
+  display: block;
+}
+
+.admin-driver-payment span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.admin-driver-payment b {
   color: var(--ink);
 }
 

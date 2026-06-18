@@ -33,6 +33,7 @@ const vehicleFields = document.querySelector("#vehicleFields");
 const vehicleBrand = document.querySelector("#vehicleBrand");
 const vehicleModel = document.querySelector("#vehicleModel");
 const vehiclePlate = document.querySelector("#vehiclePlate");
+const driverIban = document.querySelector("#driverIban");
 const driverLogin = document.querySelector("#driverLogin");
 const driverContent = document.querySelector("#driverContent");
 const driverLoginPhone = document.querySelector("#driverLoginPhone");
@@ -385,6 +386,7 @@ function renderAdminDrivers() {
           </div>
           <span>${escapeHtml(driver.telefone)} · ${escapeHtml(driver.cidade)} · ${escapeHtml(onlineText)}</span>
           <span>${escapeHtml(vehicle)}</span>
+          <span>IBAN: ${escapeHtml(driver.iban || "Nao informado")}</span>
           <div class="admin-actions">
             <button type="button" data-driver-action="approval" data-driver-index="${index}">${approvalButton}</button>
             <button type="button" data-driver-action="online" data-driver-index="${index}">${onlineButton}</button>
@@ -431,6 +433,10 @@ function paymentLabel(trip) {
   if (trip.paymentStatus === "recebido") return "Pagamento recebido";
   if (trip.paymentStatus === "aguardando_confirmacao") return "Aguardando confirmacao do suporte";
   return "Aguardando transferencia";
+}
+
+function driverPaymentLabel(trip) {
+  return trip.driverPaymentStatus === "pago" ? "Motorista pago" : "Pagamento do motorista pendente";
 }
 
 function activeOnlineDriver() {
@@ -491,6 +497,21 @@ function renderTripCard(trip, viewMode = "client") {
   const adminMode = viewMode === "support";
   const driverMode = viewMode === "driver";
   const driverText = trip.driverName ? `Motorista: ${trip.driverName}` : "Motorista: aguardando confirmacao";
+  const assignedDriver = trip.driverPhone ? findDriverByPhone(trip.driverPhone) : null;
+  const driverPaymentInfo = driverMode ? `<p>${escapeHtml(driverPaymentLabel(trip))}</p>` : "";
+  const adminDriverInfo = adminMode && (trip.driverName || assignedDriver)
+    ? `
+      <div class="admin-driver-payment">
+        <strong>Repasse do motorista</strong>
+        <span>Motorista: <b>${escapeHtml(trip.driverName || assignedDriver.nome)}</b></span>
+        <span>Telefone: <b>${escapeHtml(trip.driverPhone || (assignedDriver && assignedDriver.telefone) || "")}</b></span>
+        <span>IBAN: <b>${escapeHtml((assignedDriver && assignedDriver.iban) || "Nao informado")}</b></span>
+        <span>Motorista deve receber: <b>EUR ${trip.driverPrice}</b></span>
+        <span>Status: <b>${escapeHtml(driverPaymentLabel(trip))}</b></span>
+        ${trip.driverPaidAt ? `<span>Pago em: <b>${escapeHtml(formatDateTime(trip.driverPaidAt))}</b></span>` : ""}
+      </div>
+    `
+    : "";
   const tripDate = new Date(trip.createdAt).toLocaleString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -501,6 +522,9 @@ function renderTripCard(trip, viewMode = "client") {
   let actions = "";
 
   if (adminMode) {
+    const driverPaidButton = trip.status === "finalizada" && (trip.driverName || trip.driverPhone) && trip.driverPaymentStatus !== "pago"
+      ? `<button type="button" data-trip-action="driver-paid" data-trip-id="${trip.id}">Motorista pago</button>`
+      : "";
     actions = `
       <div class="trip-actions">
         <button type="button" data-trip-action="assign" data-trip-id="${trip.id}">Atribuir</button>
@@ -508,6 +532,7 @@ function renderTripCard(trip, viewMode = "client") {
         <button type="button" data-trip-action="minus" data-trip-id="${trip.id}">-5 min</button>
         <button type="button" data-trip-action="payment" data-trip-id="${trip.id}">Confirmar pagamento</button>
         <button type="button" data-trip-action="finish" data-trip-id="${trip.id}">Finalizar</button>
+        ${driverPaidButton}
       </div>
     `;
   }
@@ -540,6 +565,16 @@ function renderTripCard(trip, viewMode = "client") {
       ? renderChatBox(trip, "driver", "Chat com Leva Brasa", "motorista")
       : "";
   const paymentBox = viewMode === "client" ? renderClientPaymentBox(trip) : "";
+  const clientPaymentInfo = driverMode ? "" : `<p>${escapeHtml(paymentLabel(trip))}</p>`;
+  const moneyRows = adminMode
+    ? `
+      <span>Cliente paga <b>EUR ${trip.clientPrice}</b></span>
+      <span>Motorista recebe <b>EUR ${trip.driverPrice}</b></span>
+      <span>Comissao Leva Brasa <b>EUR ${trip.commission}</b></span>
+    `
+    : driverMode
+      ? `<span>Valor a receber <b>EUR ${trip.driverPrice}</b></span>`
+      : `<span>Cliente paga <b>EUR ${trip.clientPrice}</b></span>`;
 
   return `
     <article class="trip-card">
@@ -557,11 +592,11 @@ function renderTripCard(trip, viewMode = "client") {
         <span>${escapeHtml(mapText)}</span>
       </div>
       <div class="trip-money">
-        <span>Cliente paga <b>EUR ${trip.clientPrice}</b></span>
-        <span>Motorista recebe <b>EUR ${trip.driverPrice}</b></span>
-        ${adminMode ? `<span>Comissao Leva Brasa <b>EUR ${trip.commission}</b></span>` : ""}
+        ${moneyRows}
       </div>
-      <p>${escapeHtml(paymentLabel(trip))}</p>
+      ${clientPaymentInfo}
+      ${driverPaymentInfo}
+      ${adminDriverInfo}
       ${paymentBox}
       ${clientChat}
       ${driverChat}
@@ -572,6 +607,17 @@ function renderTripCard(trip, viewMode = "client") {
 
 function paymentReference(trip) {
   return `${trip.clientName || "Cliente"} - ${trip.destination}`;
+}
+
+function formatDateTime(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 function formatPaymentDetails(trip) {
@@ -640,6 +686,8 @@ function createTrip() {
     driverPrice: split.driverPrice,
     commission: split.commission,
     paymentStatus: "aguardando",
+    driverPaymentStatus: "pendente",
+    driverPaidAt: "",
     messages: [],
     status: "solicitada",
     etaMinutes: estimateArrivalMinutes(distance),
@@ -757,7 +805,7 @@ function formatClientRideMessage(distance, split) {
     airport: "Aeroporto"
   }[mode];
 
-  return `Oi, Leva Brasa! Quero uma corrida.\nTipo: ${modeText}\nOrigem: ${origin.value}\nDestino: ${destination.value}\nHorario: ${time.value}\nPessoas: ${passengers.value}\nMalas/compras: ${bagText}\nDistancia aprox.: ${distance} km\nValor da corrida: EUR ${split.clientPrice}\nMotorista recebe: EUR ${split.driverPrice}\nPagamento: transferencia para Leva Brasa apos confirmacao.`;
+  return `Oi, Leva Brasa! Quero uma corrida.\nTipo: ${modeText}\nOrigem: ${origin.value}\nDestino: ${destination.value}\nHorario: ${time.value}\nPessoas: ${passengers.value}\nMalas/compras: ${bagText}\nDistancia aprox.: ${distance} km\nValor da corrida: EUR ${split.clientPrice}\nPagamento: transferencia para Leva Brasa apos confirmacao.`;
 }
 
 function formatInternalRideMessage(distance, split) {
@@ -851,9 +899,10 @@ async function registerDriver() {
   const brand = vehicleBrand ? vehicleBrand.value.trim() : "";
   const model = vehicleModel ? vehicleModel.value.trim() : "";
   const plate = vehiclePlate ? vehiclePlate.value.trim() : "";
+  const iban = driverIban ? driverIban.value.trim() : "";
 
-  if (!name || !phone || !brand || !model || !plate) {
-    showToast("Preencha motorista e veiculo");
+  if (!name || !phone || !brand || !model || !plate || !iban) {
+    showToast("Preencha motorista, veiculo e IBAN");
     return;
   }
 
@@ -871,6 +920,7 @@ async function registerDriver() {
       modelo: model,
       placa: plate.toUpperCase()
     },
+    iban: iban.toUpperCase(),
     status: "aguardando",
     ativo: false,
     online: false,
@@ -901,6 +951,7 @@ async function registerDriver() {
   if (vehicleBrand) vehicleBrand.value = "";
   if (vehicleModel) vehicleModel.value = "";
   if (vehiclePlate) vehiclePlate.value = "";
+  if (driverIban) driverIban.value = "";
 }
 
 tabs.forEach((tab) => {
@@ -933,7 +984,7 @@ signupTabs.forEach((tab) => {
   field.addEventListener("input", updateSignupLink);
 });
 
-[vehicleBrand, vehicleModel, vehiclePlate].filter(Boolean).forEach((field) => {
+[vehicleBrand, vehicleModel, vehiclePlate, driverIban].filter(Boolean).forEach((field) => {
   field.addEventListener("input", updateSignupLink);
   field.addEventListener("change", updateSignupLink);
 });
@@ -975,6 +1026,7 @@ if (adminTripsList) {
         const driver = activeOnlineDriver();
         trip.driverName = driver ? driver.nome : "A definir";
         trip.driverPhone = driver ? driver.telefone : "";
+        trip.driverPaymentStatus = trip.driverPaymentStatus || "pendente";
         trip.status = "motorista_designado";
       }
 
@@ -997,9 +1049,15 @@ if (adminTripsList) {
         trip.paymentStatus = "recebido";
       }
 
+      if (button.dataset.tripAction === "driver-paid") {
+        trip.driverPaymentStatus = "pago";
+        trip.driverPaidAt = new Date().toISOString();
+      }
+
       if (button.dataset.tripAction === "finish") {
         trip.status = "finalizada";
         trip.etaMinutes = 0;
+        trip.driverPaymentStatus = trip.driverPaymentStatus || "pendente";
       }
     });
   });
