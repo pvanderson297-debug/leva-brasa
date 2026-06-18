@@ -1,4 +1,4 @@
-const CACHE_NAME = "leva-brasa-v14";
+const CACHE_NAME = "leva-brasa-v15";
 const APP_FILES = [
   "./",
   "./index.html",

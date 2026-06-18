@@ -59,6 +59,9 @@ const bagFee = 0;
 const airportFee = 8;
 const scheduleFee = 5;
 const commissionRate = 0.15;
+const paymentName = "Leva Brasa";
+const paymentIban = "COLOCAR_IBAN_AQUI";
+const paymentPhone = "COLOCAR_TELEFONE_AQUI";
 const legacyDriversStorageKey = "bora40Drivers";
 const legacyUsersStorageKey = "bora40Users";
 const driversStorageKey = "levaBrasaDrivers";
@@ -425,7 +428,9 @@ function statusLabel(trip) {
 }
 
 function paymentLabel(trip) {
-  return trip.paymentStatus === "recebido" ? "Pagamento recebido" : "Aguardando transferencia";
+  if (trip.paymentStatus === "recebido") return "Pagamento recebido";
+  if (trip.paymentStatus === "aguardando_confirmacao") return "Aguardando confirmacao do suporte";
+  return "Aguardando transferencia";
 }
 
 function activeOnlineDriver() {
@@ -473,9 +478,8 @@ function renderDriverArea() {
 
   const trips = loadTrips().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const driverTrips = trips.filter((trip) => {
-    const isOpen = trip.status === "solicitada";
     const isMine = normalizePhone(trip.driverPhone) === normalizePhone(currentSession.phone);
-    return isOpen || isMine;
+    return isMine;
   });
 
   driverTripsList.innerHTML = driverTrips.length
@@ -502,7 +506,7 @@ function renderTripCard(trip, viewMode = "client") {
         <button type="button" data-trip-action="assign" data-trip-id="${trip.id}">Atribuir</button>
         <button type="button" data-trip-action="arriving" data-trip-id="${trip.id}">Chegando</button>
         <button type="button" data-trip-action="minus" data-trip-id="${trip.id}">-5 min</button>
-        <button type="button" data-trip-action="payment" data-trip-id="${trip.id}">Pagamento</button>
+        <button type="button" data-trip-action="payment" data-trip-id="${trip.id}">Confirmar pagamento</button>
         <button type="button" data-trip-action="finish" data-trip-id="${trip.id}">Finalizar</button>
       </div>
     `;
@@ -511,7 +515,6 @@ function renderTripCard(trip, viewMode = "client") {
   if (driverMode) {
     actions = `
       <div class="trip-actions">
-        <button type="button" data-driver-trip-action="accept" data-trip-id="${trip.id}">Aceitar</button>
         <button type="button" data-driver-trip-action="arriving" data-trip-id="${trip.id}">Chegando</button>
         <button type="button" data-driver-trip-action="minus" data-trip-id="${trip.id}">-5 min</button>
         <button type="button" data-driver-trip-action="finish" data-trip-id="${trip.id}">Finalizar</button>
@@ -536,6 +539,7 @@ function renderTripCard(trip, viewMode = "client") {
     : driverMode
       ? renderChatBox(trip, "driver", "Chat com Leva Brasa", "motorista")
       : "";
+  const paymentBox = viewMode === "client" ? renderClientPaymentBox(trip) : "";
 
   return `
     <article class="trip-card">
@@ -558,10 +562,37 @@ function renderTripCard(trip, viewMode = "client") {
         ${adminMode ? `<span>Comissao Leva Brasa <b>EUR ${trip.commission}</b></span>` : ""}
       </div>
       <p>${escapeHtml(paymentLabel(trip))}</p>
+      ${paymentBox}
       ${clientChat}
       ${driverChat}
       ${actions}
     </article>
+  `;
+}
+
+function paymentReference(trip) {
+  return `${trip.clientName || "Cliente"} - ${trip.destination}`;
+}
+
+function formatPaymentDetails(trip) {
+  return `Pagamento Leva Brasa\nValor total: EUR ${trip.clientPrice}\nNome: ${paymentName}\nIBAN: ${paymentIban}\nRevolut/Telefone: ${paymentPhone}\nReferencia: ${paymentReference(trip)}`;
+}
+
+function renderClientPaymentBox(trip) {
+  return `
+    <div class="payment-box">
+      <strong>Pagamento</strong>
+      <span>Valor total da viagem: <b>EUR ${trip.clientPrice}</b></span>
+      <p>Faca o pagamento por transferencia antes da viagem.</p>
+      <span>Nome: <b>${escapeHtml(paymentName)}</b></span>
+      <span>IBAN: <b>${escapeHtml(paymentIban)}</b></span>
+      <span>Revolut/Telefone: <b>${escapeHtml(paymentPhone)}</b></span>
+      <span>Referencia: <b>${escapeHtml(paymentReference(trip))}</b></span>
+      <div class="payment-actions">
+        <button type="button" data-payment-action="copy" data-trip-id="${trip.id}">Copiar dados de pagamento</button>
+        <button type="button" data-payment-action="sent" data-trip-id="${trip.id}">Ja fiz o pagamento</button>
+      </div>
+    </div>
   `;
 }
 
@@ -651,6 +682,19 @@ function addTripMessage(tripId, role, channel, text) {
   });
 }
 
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("copy");
+    textArea.remove();
+  }
+}
+
 function handleTripListClick(event) {
   const chatButton = event.target && event.target.closest ? event.target.closest("button[data-chat-trip]") : null;
   if (!chatButton) return false;
@@ -663,6 +707,28 @@ function handleTripListClick(event) {
 
   addTripMessage(tripId, role, channel, input.value);
   input.value = "";
+  return true;
+}
+
+function handleClientPaymentClick(event) {
+  const button = event.target && event.target.closest ? event.target.closest("button[data-payment-action]") : null;
+  if (!button) return false;
+
+  const tripId = button.dataset.tripId;
+  const trip = loadTrips().find((item) => item.id === tripId);
+  if (!trip) return true;
+
+  if (button.dataset.paymentAction === "copy") {
+    copyText(formatPaymentDetails(trip)).then(() => showToast("Dados de pagamento copiados"));
+  }
+
+  if (button.dataset.paymentAction === "sent") {
+    updateTrip(tripId, (item) => {
+      item.paymentStatus = "aguardando_confirmacao";
+    });
+    showToast("Pagamento aguardando suporte");
+  }
+
   return true;
 }
 
@@ -928,7 +994,7 @@ if (adminTripsList) {
       }
 
       if (button.dataset.tripAction === "payment") {
-        trip.paymentStatus = trip.paymentStatus === "recebido" ? "aguardando" : "recebido";
+        trip.paymentStatus = "recebido";
       }
 
       if (button.dataset.tripAction === "finish") {
@@ -956,22 +1022,12 @@ if (driverTripsList) {
       const mine = normalizePhone(trip.driverPhone) === normalizePhone(currentSession.phone);
       if (trip.driverPhone && !mine) return;
 
-      if (button.dataset.driverTripAction === "accept") {
-        trip.driverName = driver.nome;
-        trip.driverPhone = driver.telefone;
-        trip.status = "motorista_designado";
-      }
-
       if (button.dataset.driverTripAction === "arriving") {
-        trip.driverName = driver.nome;
-        trip.driverPhone = driver.telefone;
         trip.status = "motorista_chegando";
         trip.etaMinutes = trip.etaMinutes || estimateArrivalMinutes(trip.distance);
       }
 
       if (button.dataset.driverTripAction === "minus") {
-        trip.driverName = driver.nome;
-        trip.driverPhone = driver.telefone;
         trip.status = "motorista_chegando";
         trip.etaMinutes = Math.max(1, (trip.etaMinutes || estimateArrivalMinutes(trip.distance)) - 5);
       }
@@ -985,7 +1041,10 @@ if (driverTripsList) {
 }
 
 if (tripsList) {
-  tripsList.addEventListener("click", handleTripListClick);
+  tripsList.addEventListener("click", (event) => {
+    if (handleClientPaymentClick(event)) return;
+    handleTripListClick(event);
+  });
 }
 
 if (bookRideButton) {
@@ -1071,17 +1130,7 @@ shareBtn.addEventListener("click", async () => {
   const price = Number(priceText.textContent.replace("EUR ", ""));
   const message = formatClientRideMessage(distance, calculateSplit(price));
 
-  try {
-    await navigator.clipboard.writeText(message);
-  } catch {
-    const textArea = document.createElement("textarea");
-    textArea.value = message;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand("copy");
-    textArea.remove();
-  }
-
+  await copyText(message);
   showToast();
 });
 

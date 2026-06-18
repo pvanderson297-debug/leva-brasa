@@ -719,6 +719,55 @@ input:focus {
   color: var(--ink);
 }
 
+.payment-box {
+  display: grid;
+  gap: 7px;
+  padding: 11px;
+  border: 1px solid #dbe9da;
+  border-radius: 14px;
+  background: #f2f8f0;
+}
+
+.payment-box strong,
+.payment-box span {
+  display: block;
+}
+
+.payment-box span,
+.payment-box p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.payment-box b {
+  color: var(--ink);
+}
+
+.payment-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.payment-actions button {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.payment-actions button:last-child {
+  color: #fff;
+  border-color: var(--green);
+  background: var(--green);
+}
+
 .trip-actions button,
 .support-link {
   min-height: 40px;
@@ -900,6 +949,7 @@ input:focus {
 
   .trip-actions,
   .chat-form,
+  .payment-actions,
   .actions,
   .split {
     grid-template-columns: 1fr;
