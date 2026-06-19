@@ -79,6 +79,91 @@ h1 {
   cursor: pointer;
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-button {
+  position: relative;
+}
+
+.notification-button span {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 18px;
+  height: 18px;
+  display: none;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: #d83a34;
+  border: 2px solid #fff;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.notification-button span.show {
+  display: grid;
+}
+
+.notification-panel {
+  display: none;
+  gap: 10px;
+  padding: 0 16px 14px;
+}
+
+.notification-panel.show {
+  display: grid;
+}
+
+.notification-list {
+  display: grid;
+  gap: 8px;
+}
+
+.notification-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .78);
+}
+
+.notification-card.unread {
+  border-color: rgba(20, 138, 85, .35);
+  background: #f2f8f0;
+}
+
+.notification-card strong,
+.notification-card span,
+.notification-card small {
+  display: block;
+}
+
+.notification-card span,
+.notification-card small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.notification-card button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 850;
+  cursor: pointer;
+  padding: 0 10px;
+}
+
 .map-panel {
   position: relative;
   margin: 0 16px;
@@ -516,6 +601,75 @@ input:focus {
   font-weight: 850;
 }
 
+.admin-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.admin-city-form,
+.admin-cities-list {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-panel,
+.finance-content {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-content {
+  display: none;
+}
+
+.finance-content.show {
+  display: grid;
+}
+
+.finance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.finance-grid div,
+.driver-status-box,
+.call-card {
+  display: grid;
+  gap: 5px;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .78);
+}
+
+.finance-grid strong,
+.finance-grid span,
+.driver-status-box strong,
+.driver-status-box span,
+.call-card strong,
+.call-card span {
+  display: block;
+}
+
+.finance-grid strong {
+  font-size: 18px;
+}
+
+.finance-grid span,
+.driver-status-box span,
+.call-card span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.call-card {
+  border-color: rgba(20, 138, 85, .35);
+  background: #f2f8f0;
+}
+
 .signup-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -747,6 +901,30 @@ input:focus {
   color: var(--ink);
 }
 
+.trip-details {
+  display: grid;
+  gap: 7px;
+  padding: 11px;
+  border: 1px solid #dbe9da;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .86);
+}
+
+.trip-details strong,
+.trip-details span {
+  display: block;
+}
+
+.trip-details span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.trip-details b {
+  color: var(--ink);
+}
+
 .payment-box {
   display: grid;
   gap: 7px;
@@ -874,6 +1052,7 @@ input:focus {
   padding: 0 12px;
 }
 
+.admin-city-card,
 .admin-driver-card,
 .admin-user-card {
   display: grid;
@@ -884,6 +1063,7 @@ input:focus {
   background: rgba(255, 255, 255, .74);
 }
 
+.admin-city-card div,
 .admin-driver-card div,
 .admin-user-card div {
   display: flex;
@@ -891,6 +1071,8 @@ input:focus {
   gap: 12px;
 }
 
+.admin-city-card strong,
+.admin-city-card span,
 .admin-driver-card strong,
 .admin-driver-card span,
 .admin-user-card strong,
@@ -898,6 +1080,7 @@ input:focus {
   display: block;
 }
 
+.admin-city-card span,
 .admin-driver-card span,
 .admin-user-card span,
 .empty-state {
@@ -978,6 +1161,9 @@ input:focus {
   .trip-actions,
   .chat-form,
   .payment-actions,
+  .admin-filters,
+  .admin-city-form,
+  .finance-grid,
   .actions,
   .split {
     grid-template-columns: 1fr;

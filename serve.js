@@ -19,7 +19,7 @@ const types = {
 function ensureDb() {
   if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
   if (!fs.existsSync(dbFile)) {
-    fs.writeFileSync(dbFile, JSON.stringify({ users: [], drivers: [], trips: [] }, null, 2));
+    fs.writeFileSync(dbFile, JSON.stringify({ users: [], drivers: [], trips: [], cities: [], appConfig: null }, null, 2));
   }
 }
 
@@ -28,7 +28,7 @@ function readDb() {
   try {
     return JSON.parse(fs.readFileSync(dbFile, "utf8"));
   } catch {
-    return { users: [], drivers: [], trips: [] };
+    return { users: [], drivers: [], trips: [], cities: [], appConfig: null };
   }
 }
 
@@ -68,12 +68,14 @@ async function handleApi(request, response, cleanUrl) {
     return true;
   }
 
-  const saveMatch = cleanUrl.match(/^\/api\/(users|drivers|trips)$/);
+  const saveMatch = cleanUrl.match(/^\/api\/(users|drivers|trips|cities|appConfig)$/);
   if (request.method === "POST" && saveMatch) {
     const collection = saveMatch[1];
     const body = await readBody(request);
     const db = readDb();
-    db[collection] = Array.isArray(body.items) ? body.items : [];
+    db[collection] = collection === "appConfig"
+      ? (body.items && typeof body.items === "object" ? body.items : null)
+      : (Array.isArray(body.items) ? body.items : []);
     writeDb(db);
     sendJson(response, 200, { ok: true, [collection]: db[collection] });
     return true;
