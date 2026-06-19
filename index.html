@@ -1,526 +1,140 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#148a55" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Leva Brasa" />
-    <title>Leva Brasa | Clare/Mayo</title>
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="./assets/icon.svg" />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <main class="app-shell">
-      <section class="phone">
-        <header class="topbar">
-          <div>
-            <p class="eyebrow">Claremorris · Mayo · Aeroportos</p>
-            <h1>Leva Brasa</h1>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leva Brasa</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <div>
+        <small>CLAREMORRIS • MAYO • AEROPORTOS</small>
+        <h1>Leva Brasa</h1>
+      </div>
+      <div class="top-actions">
+        <button id="btnBell" class="circle">🔔<span id="badge" class="badge hidden">0</span></button>
+        <button id="btnLogout" class="circle hidden">Sair</button>
+      </div>
+    </header>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <section id="auth" class="card screen">
+      <h2>Entrar ou cadastrar</h2>
+      <p>Cliente, motorista e administrador ficam em áreas separadas.</p>
+      <div class="tabs">
+        <button class="active" data-role="passageiro">Passageiro</button>
+        <button data-role="motorista">Motorista</button>
+        <button data-role="admin">Admin</button>
+      </div>
+
+      <form id="authForm" class="form">
+        <label>Nome <input id="name" placeholder="Seu nome"></label>
+        <label>Telefone/WhatsApp <input id="phone" placeholder="+353..."></label>
+        <label>E-mail <input id="email" type="email" required placeholder="email@email.com"></label>
+        <label>Cidade
+          <select id="city">
+            <option>Claremorris</option><option>Castlebar</option><option>Knock</option>
+            <option>Galway</option><option>Dublin</option><option>Cork</option>
+          </select>
+        </label>
+        <label>Senha <input id="password" type="password" required placeholder="mínimo 4 caracteres"></label>
+
+        <div id="driverFields" class="hidden">
+          <h3>Dados do motorista</h3>
+          <label>Marca do veículo <input id="brand"></label>
+          <label>Modelo do veículo <input id="model"></label>
+          <label>Placa <input id="plate"></label>
+          <label>IBAN do motorista <input id="iban"></label>
+          <div class="grid2">
+            <label>Nº habilitação <input id="license"></label>
+            <label>Categoria <input id="category" placeholder="B"></label>
           </div>
-          <div class="topbar-actions">
-            <button id="notificationButton" class="icon-button notification-button" type="button" aria-label="Abrir notificacoes">
-              !
-              <span id="notificationBadge">0</span>
-            </button>
-            <button class="icon-button" type="button" aria-label="Abrir perfil">BR</button>
+          <label>Validade da habilitação <input id="expiry" type="date"></label>
+          <div class="grid2">
+            <label>Ano <input id="year"></label>
+            <label>Cor <input id="color"></label>
           </div>
-        </header>
+          <label>Número de lugares <input id="seats" type="number" value="4"></label>
 
-        <section id="notificationPanel" class="notification-panel">
-          <div class="section-heading">
-            <strong>Notificacoes</strong>
-            <span>Atualizacoes das suas viagens.</span>
-          </div>
-          <div id="notificationList" class="notification-list">
-            <span class="empty-state">Nenhuma notificacao.</span>
-          </div>
-        </section>
-
-        <section class="map-panel" aria-label="Area de atendimento">
-          <img src="./assets/mayo-route.svg" alt="Mapa estilizado com rota e carro" />
-          <div class="status-pill">
-            <span class="live-dot"></span>
-            <span id="onlineCountText">0 motoristas online</span>
-          </div>
-          <div class="coverage-card">
-            <strong>Base</strong>
-            <span>Claremorris, Mayo</span>
-          </div>
-        </section>
-
-        <section class="session-panel" aria-label="Conta atual">
-          <div>
-            <strong id="sessionLabel">Visitante</strong>
-            <span id="sessionHint">Cadastre-se ou entre para usar o app.</span>
-          </div>
-          <button id="sessionLogoutButton" class="secondary-action" type="button">Sair</button>
-        </section>
-
-        <section class="ride-panel">
-          <div class="tabs" role="tablist" aria-label="Tipo de viagem">
-            <button class="tab active" type="button" data-mode="now">Hoje</button>
-            <button class="tab" type="button" data-mode="later">Agendar</button>
-            <button class="tab" type="button" data-mode="airport">Chegada</button>
-          </div>
-
-          <form id="rideForm">
-            <label class="field">
-              <span>Origem</span>
-              <select id="origin">
-                <option>Claremorris</option>
-                <option>Castlebar</option>
-                <option>Ireland West Airport Knock</option>
-                <option>Shannon Airport</option>
-                <option>Dublin Airport</option>
-                <option>Cork Airport</option>
-                <option>Knock</option>
-                <option>Ballinrobe</option>
-                <option>Swinford</option>
-                <option>Westport</option>
-                <option>Outro ponto em Clare/Mayo</option>
-              </select>
-            </label>
-
-            <label class="field">
-              <span>Destino</span>
-              <select id="destination">
-                <option>Ireland West Airport Knock</option>
-                <option>Shannon Airport</option>
-                <option>Dublin Airport</option>
-                <option>Cork Airport</option>
-                <option>Castlebar</option>
-                <option>Claremorris</option>
-                <option>Ballinrobe</option>
-                <option>Westport</option>
-                <option>Swinford</option>
-                <option>Outro ponto em Clare/Mayo</option>
-              </select>
-            </label>
-
-            <div class="split">
-              <label class="field">
-                <span>Pessoas</span>
-                <input id="passengers" type="number" min="1" max="6" value="2" />
-              </label>
-              <label class="field">
-                <span>Quando</span>
-                <input id="time" type="time" value="18:30" />
-              </label>
-            </div>
-
-            <label class="toggle-row">
-              <input id="bags" type="checkbox" />
-              <span>Com malas ou compras grandes</span>
-            </label>
-            <label class="field">
-              <span>Observacao opcional</span>
-              <input id="rideNote" type="text" placeholder="Ex: cadeira infantil, portao, malas..." />
-            </label>
-          </form>
-
-          <section class="mini-map-card" aria-label="Mapa pequeno de cobertura">
-            <div class="mini-map-copy">
-              <strong>Mapa de cobertura</strong>
-              <span>Viagens locais na regiao e para Knock, Shannon, Dublin e Cork.</span>
-            </div>
-            <img src="./assets/mini-map.svg" alt="Mapa pequeno com raio de 40 km saindo de Claremorris" />
-            <a id="routeMapLink" class="route-map-action" href="#" rel="noreferrer">Abrir rota no mapa</a>
-          </section>
-
-          <section class="estimate" aria-live="polite">
-            <div>
-              <span id="distanceText">18 km</span>
-              <strong id="priceText">EUR 29</strong>
-            </div>
-            <p id="noteText">Base EUR 8 + EUR 1/km. Minimo EUR 12.</p>
-            <div class="price-split">
-              <span>Cliente paga <b id="clientPriceText">EUR 29</b></span>
-            </div>
-          </section>
-
-          <div class="actions">
-            <button id="bookRideButton" class="primary-action" type="button">Solicitar viagem</button>
-            <button id="shareBtn" class="secondary-action" type="button">Copiar resumo</button>
-          </div>
-        </section>
-
-        <section class="trips-panel">
-          <div class="section-heading">
-            <strong>Minhas viagens</strong>
-            <span>Pedidos salvos dentro do app, com acompanhamento de status.</span>
-          </div>
-          <div id="tripsList" class="trips-list">
-            <span class="empty-state">Nenhuma viagem solicitada.</span>
-          </div>
-        </section>
-
-        <section class="drivers">
-          <article class="driver-card active-driver">
-            <div class="avatar">LU</div>
-            <div>
-              <strong>Lucas</strong>
-              <span>8 min · Sedan · Portugues</span>
-            </div>
-            <b>4.9</b>
-          </article>
-          <article class="driver-card">
-            <div class="avatar">MA</div>
-            <div>
-              <strong>Marina</strong>
-              <span>14 min · Van pequena · Ingles</span>
-            </div>
-            <b>4.8</b>
-          </article>
-        </section>
-
-        <section class="signup-panel">
-          <div class="section-heading">
-            <strong>Cadastro rapido</strong>
-            <span>Passageiro ou motorista, sem papelada no primeiro contato.</span>
-          </div>
-          <div class="signup-tabs" aria-label="Tipo de cadastro">
-            <button class="signup-tab active" type="button" data-signup="passageiro">Passageiro</button>
-            <button class="signup-tab" type="button" data-signup="motorista">Motorista</button>
-          </div>
-          <label class="field">
-            <span>Nome</span>
-            <input id="signupName" type="text" placeholder="Seu nome" />
+          <label class="upload">Upload da habilitação JPG, PNG ou PDF
+            <input id="licenseFile" type="file" accept="image/png,image/jpeg,application/pdf">
           </label>
-          <label class="field">
-            <span>Telefone</span>
-            <input id="signupPhone" type="tel" placeholder="+353..." />
+          <div id="licensePreview" class="preview"></div>
+
+          <label class="upload">Upload da selfie JPG ou PNG
+            <input id="selfieFile" type="file" accept="image/png,image/jpeg">
           </label>
-          <label class="field">
-            <span>E-mail</span>
-            <input id="signupEmail" type="email" placeholder="seu@email.com" />
-          </label>
-          <label class="field">
-            <span>Cidade</span>
-            <select id="signupTown">
-              <option>Claremorris</option>
-              <option>Castlebar</option>
-              <option>Knock</option>
-              <option>Ireland West Airport Knock</option>
-              <option>Ballinrobe</option>
-              <option>Swinford</option>
-              <option>Westport</option>
-              <option>Outra ate 40 km</option>
+          <div id="selfiePreview" class="preview"></div>
+        </div>
+
+        <button class="primary">Entrar / cadastrar</button>
+      </form>
+      <p class="hint">Admin principal: pvanderson297@gmail.com</p>
+    </section>
+
+    <section id="passenger" class="screen hidden">
+      <div class="card">
+        <h2>Área do passageiro</h2>
+        <p><span class="dot"></span> <b id="onlineCount">0</b> motoristas online</p>
+        <div class="map">
+          <div class="pin base">Base<br>Claremorris</div>
+          <div class="pin dest">Destino</div>
+          <div class="car">🚕</div>
+        </div>
+        <form id="rideForm" class="form">
+          <label>Origem <input id="origin" value="Claremorris"></label>
+          <label>Destino
+            <select id="destination">
+              <option>Ireland West Airport Knock</option><option>Castlebar</option>
+              <option>Galway</option><option>Dublin Airport</option><option>Cork Airport</option>
             </select>
           </label>
-          <div class="split">
-            <label class="field">
-              <span>Senha</span>
-              <input id="signupPassword" type="password" placeholder="Crie sua senha" />
-            </label>
-            <label class="field">
-              <span>Confirmar</span>
-              <input id="signupPasswordConfirm" type="password" placeholder="Repita a senha" />
-            </label>
+          <div class="grid2">
+            <label>Pessoas <input id="people" type="number" min="1" value="1"></label>
+            <label>Quando <input id="time" type="time" value="18:30"></label>
           </div>
-          <div id="vehicleFields" class="vehicle-fields">
-            <label class="field">
-              <span>Marca do veiculo</span>
-              <input id="vehicleBrand" type="text" placeholder="Toyota, VW, Ford..." />
-            </label>
-            <label class="field">
-              <span>Modelo do veiculo</span>
-              <input id="vehicleModel" type="text" placeholder="Corolla, Golf, Focus..." />
-            </label>
-            <label class="field">
-              <span>Placa do veiculo</span>
-              <input id="vehiclePlate" type="text" placeholder="Ex: 231-MO-1234" />
-            </label>
-            <label class="field">
-              <span>IBAN do motorista</span>
-              <input id="driverIban" type="text" placeholder="IE..." />
-            </label>
-            <div class="split">
-              <label class="field">
-                <span>Numero habilitacao</span>
-                <input id="driverLicenseNumber" type="text" placeholder="Numero" />
-              </label>
-              <label class="field">
-                <span>Categoria</span>
-                <input id="driverLicenseCategory" type="text" placeholder="B" />
-              </label>
-            </div>
-            <label class="field">
-              <span>Validade habilitacao</span>
-              <input id="driverLicenseExpiry" type="date" />
-            </label>
-            <div class="split">
-              <label class="field">
-                <span>Foto habilitacao frente</span>
-                <input id="driverLicensePhoto" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" />
-                <small id="driverLicensePhotoName" class="upload-name">Nenhum arquivo enviado</small>
-                <img id="driverLicensePhotoPreview" class="upload-preview" alt="Previa da habilitacao" />
-              </label>
-              <label class="field">
-                <span>Selfie motorista</span>
-                <input id="driverSelfie" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" />
-                <small id="driverSelfieName" class="upload-name">Nenhum arquivo enviado</small>
-                <img id="driverSelfiePreview" class="upload-preview" alt="Previa da selfie" />
-              </label>
-            </div>
-            <div class="split">
-              <label class="field">
-                <span>Ano veiculo</span>
-                <input id="vehicleYear" type="number" min="1990" max="2030" placeholder="2020" />
-              </label>
-              <label class="field">
-                <span>Cor veiculo</span>
-                <input id="vehicleColor" type="text" placeholder="Preto, branco..." />
-              </label>
-            </div>
-            <label class="field">
-              <span>Numero de lugares</span>
-              <input id="vehicleSeats" type="number" min="1" max="8" value="4" />
-            </label>
-          </div>
-          <a id="signupLink" class="signup-action" href="#" rel="noreferrer">Enviar cadastro</a>
-          <div class="section-heading compact-heading">
-            <strong>Entrar passageiro</strong>
-            <span>Acesse suas viagens ja cadastradas.</span>
-          </div>
-          <label class="field">
-            <span>Telefone passageiro</span>
-            <input id="passengerLoginPhone" type="tel" placeholder="+353..." />
-          </label>
-          <label class="field">
-            <span>Senha</span>
-            <input id="passengerLoginPassword" type="password" placeholder="Sua senha" />
-          </label>
-          <button id="passengerLoginButton" class="signup-action" type="button">Entrar como passageiro</button>
-        </section>
+          <label><input id="bags" type="checkbox"> Com malas ou compras grandes</label>
+          <label>Observação <textarea id="notes" placeholder="Ex: cadeira infantil, portão, malas..."></textarea></label>
+          <div class="price"><span id="km">27 km</span><strong id="price">EUR 35</strong></div>
+          <button class="primary">Solicitar viagem</button>
+        </form>
+      </div>
+      <div class="card"><h3>Minhas viagens</h3><div id="passengerRides"></div></div>
+    </section>
 
-        <section class="driver-panel">
-          <div class="section-heading">
-            <strong>Area do motorista</strong>
-            <span>Entrar, executar corridas atribuidas e conversar com o suporte.</span>
-          </div>
-          <div id="driverLogin" class="driver-login">
-            <label class="field">
-              <span>Telefone motorista</span>
-              <input id="driverLoginPhone" type="tel" placeholder="+353..." />
-            </label>
-            <label class="field">
-              <span>Senha</span>
-              <input id="driverLoginPassword" type="password" placeholder="Sua senha" />
-            </label>
-            <button id="driverLoginButton" class="signup-action" type="button">Entrar como motorista</button>
-          </div>
-          <div id="driverContent" class="driver-content">
-            <div class="driver-status-box">
-              <strong id="driverStatusText">Motorista offline</strong>
-              <span id="driverLocationText">Localizacao ainda nao atualizada.</span>
-              <button id="driverOnlineToggle" class="primary-action" type="button">Ficar Online</button>
-            </div>
-            <div class="section-heading compact-heading">
-              <strong>Corridas do motorista</strong>
-              <span>Viagens atribuidas pelo suporte para voce.</span>
-            </div>
-            <div id="driverTripsList" class="trips-list">
-              <span class="empty-state">Nenhuma corrida disponivel.</span>
-            </div>
-            <button id="driverLogoutButton" class="secondary-action" type="button">Sair do motorista</button>
-          </div>
-        </section>
+    <section id="driver" class="screen hidden">
+      <div class="card">
+        <h2>Área do motorista</h2>
+        <p>Status aprovação: <b id="approvalStatus"></b></p>
+        <p>Status motorista: <b id="driverStatus"></b></p>
+        <button id="goOnline" class="primary">Ficar online</button>
+        <button id="goOffline" class="secondary">Ficar offline</button>
+      </div>
+      <div class="card"><h3>Corridas disponíveis</h3><div id="availableRides"></div></div>
+      <div class="card"><h3>Minha corrida atual</h3><div id="currentRide"></div></div>
+    </section>
 
-        <section class="admin-panel">
-          <div class="section-heading">
-            <strong>Painel <span data-app-name>Leva Brasa</span></strong>
-            <span>Acesso exclusivo do suporte.</span>
-          </div>
-          <div id="adminLogin" class="admin-login">
-            <label class="field">
-              <span>E-mail administrador</span>
-              <input id="adminEmail" type="email" placeholder="pvanderson297@gmail.com" />
-            </label>
-            <label class="field">
-              <span>Senha suporte</span>
-              <input id="adminPassword" type="password" placeholder="Digite a senha" />
-            </label>
-            <button id="adminLoginButton" class="signup-action" type="button">Entrar no suporte</button>
-          </div>
-          <div id="adminContent" class="admin-content">
-            <div class="admin-stats">
-              <div>
-                <strong id="adminClientCount">0</strong>
-                <span>clientes</span>
-              </div>
-              <div>
-                <strong id="adminDriverCount">0</strong>
-                <span>motoristas</span>
-              </div>
-              <div>
-                <strong id="adminOnlineCount">0</strong>
-                <span>online</span>
-              </div>
-            </div>
-            <div class="section-heading compact-heading">
-              <strong>Configuracao do app</strong>
-              <span>Nome, cores e cidade padrao para expansao.</span>
-            </div>
-            <div class="admin-city-form">
-              <label class="field">
-                <span>Nome do app</span>
-                <input id="appNameInput" type="text" placeholder="Leva Brasa" />
-              </label>
-              <label class="field">
-                <span>Logo</span>
-                <input id="appLogoInput" type="text" placeholder="./assets/icon.svg" />
-              </label>
-              <label class="field">
-                <span>Cor principal</span>
-                <input id="appPrimaryColorInput" type="text" placeholder="#148a55" />
-              </label>
-              <label class="field">
-                <span>Cor secundaria</span>
-                <input id="appSecondaryColorInput" type="text" placeholder="#f5c542" />
-              </label>
-              <label class="field">
-                <span>Pais padrao</span>
-                <input id="appDefaultCountryInput" type="text" placeholder="Irlanda" />
-              </label>
-              <label class="field">
-                <span>Cidade padrao</span>
-                <input id="appDefaultCityInput" type="text" placeholder="Claremorris" />
-              </label>
-              <label class="field">
-                <span>E-mail admin principal</span>
-                <input id="appAdminEmailInput" type="email" placeholder="pvanderson297@gmail.com" />
-              </label>
-              <button id="saveAppConfigButton" class="signup-action" type="button">Salvar configuracao</button>
-            </div>
-            <section id="adminFinancePanel" class="finance-panel">
-              <div class="section-heading compact-heading">
-                <strong>Financeiro</strong>
-                <span id="financeAccessText">Acesso permitido apenas ao administrador.</span>
-              </div>
-              <div id="financeContent" class="finance-content">
-                <div class="finance-grid">
-                  <div><strong id="financeReceivedToday">EUR 0</strong><span>recebido hoje</span></div>
-                  <div><strong id="financeReceivedWeek">EUR 0</strong><span>recebido semana</span></div>
-                  <div><strong id="financeReceivedMonth">EUR 0</strong><span>recebido mes</span></div>
-                  <div><strong id="financePaidToday">EUR 0</strong><span>pago hoje</span></div>
-                  <div><strong id="financePaidWeek">EUR 0</strong><span>pago semana</span></div>
-                  <div><strong id="financePaidMonth">EUR 0</strong><span>pago mes</span></div>
-                  <div><strong id="financeProfitToday">EUR 0</strong><span>lucro hoje</span></div>
-                  <div><strong id="financeProfitWeek">EUR 0</strong><span>lucro semana</span></div>
-                  <div><strong id="financeProfitMonth">EUR 0</strong><span>lucro mes</span></div>
-                  <div><strong id="financeCompletedCount">0</strong><span>concluidas</span></div>
-                  <div><strong id="financeCanceledCount">0</strong><span>canceladas</span></div>
-                  <div><strong id="financePendingDriverCount">0</strong><span>pagamentos pendentes</span></div>
-                </div>
-                <button id="exportCsvButton" class="secondary-action" type="button">Exportar relatorio CSV</button>
-              </div>
-            </section>
-            <div class="section-heading compact-heading">
-              <strong>Passageiros cadastrados</strong>
-              <span>Registro dos clientes criados dentro do app.</span>
-            </div>
-            <div id="adminUsersList" class="admin-users-list">
-              <span class="empty-state">Nenhum passageiro cadastrado.</span>
-            </div>
-            <div class="section-heading compact-heading">
-              <strong>Cidades e regioes</strong>
-              <span>Ative, desative ou adicione cidades sem mexer no codigo.</span>
-            </div>
-            <div class="admin-city-form">
-              <label class="field">
-                <span>Pais</span>
-                <input id="cityCountryInput" type="text" placeholder="Irlanda" />
-              </label>
-              <label class="field">
-                <span>Estado/regiao</span>
-                <input id="cityRegionInput" type="text" placeholder="Mayo" />
-              </label>
-              <label class="field">
-                <span>Cidade</span>
-                <input id="cityNameInput" type="text" placeholder="Claremorris" />
-              </label>
-              <label class="field">
-                <span>Raio padrao km</span>
-                <input id="cityRadiusInput" type="number" min="1" value="20" />
-              </label>
-              <label class="field">
-                <span>Taxa base</span>
-                <input id="cityBaseFareInput" type="number" min="0" value="8" />
-              </label>
-              <label class="field">
-                <span>Moeda</span>
-                <input id="cityCurrencyInput" type="text" value="EUR" />
-              </label>
-              <button id="addCityButton" class="signup-action" type="button">Adicionar cidade</button>
-            </div>
-            <div id="adminCitiesList" class="admin-cities-list">
-              <span class="empty-state">Nenhuma cidade configurada.</span>
-            </div>
-            <div class="section-heading compact-heading">
-              <strong>Motoristas cadastrados</strong>
-              <span>Motoristas precisam de aprovacao para ficar online.</span>
-            </div>
-            <div id="adminDriversList" class="admin-drivers-list">
-              <span class="empty-state">Nenhum motorista cadastrado.</span>
-            </div>
-            <div class="section-heading compact-heading">
-              <strong>Viagens</strong>
-              <span>Pedidos recebidos e acompanhamento do motorista.</span>
-            </div>
-            <div class="admin-filters">
-              <label class="field">
-                <span>Status</span>
-                <select id="adminStatusFilter">
-                  <option value="">Todos</option>
-                </select>
-              </label>
-              <label class="field">
-                <span>Data</span>
-                <input id="adminDateFilter" type="date" />
-              </label>
-              <label class="field">
-                <span>Motorista</span>
-                <input id="adminDriverFilter" type="text" placeholder="Nome ou telefone" />
-              </label>
-              <label class="field">
-                <span>Passageiro</span>
-                <input id="adminPassengerFilter" type="text" placeholder="Nome ou telefone" />
-              </label>
-              <label class="field">
-                <span>Pais</span>
-                <input id="adminCountryFilter" type="text" placeholder="Irlanda" />
-              </label>
-              <label class="field">
-                <span>Regiao</span>
-                <input id="adminRegionFilter" type="text" placeholder="Mayo" />
-              </label>
-              <label class="field">
-                <span>Cidade</span>
-                <input id="adminCityFilter" type="text" placeholder="Claremorris" />
-              </label>
-              <label class="field">
-                <span>Status cidade</span>
-                <select id="adminCityStatusFilter">
-                  <option value="">Todas</option>
-                  <option value="ativa">Ativa</option>
-                  <option value="inativa">Inativa</option>
-                </select>
-              </label>
-            </div>
-            <div id="adminTripsList" class="trips-list">
-              <span class="empty-state">Nenhuma viagem pendente.</span>
-            </div>
-            <button id="adminLogoutButton" class="secondary-action" type="button">Sair do suporte</button>
-            <a class="support-link" href="mailto:suporte@levabrasa.ie">Suporte por e-mail</a>
-          </div>
-        </section>
-      </section>
-    </main>
+    <section id="admin" class="screen hidden">
+      <div class="card">
+        <h2>Painel Admin</h2>
+        <p>Acesso total do administrador.</p>
+      </div>
+      <div class="card"><h3>Motoristas pendentes</h3><div id="pendingDrivers"></div></div>
+      <div class="card"><h3>Viagens</h3><div id="adminRides"></div></div>
+      <div class="card"><h3>Financeiro simples</h3><div id="finance"></div></div>
+    </section>
 
-    <div id="toast" class="toast" role="status">Pedido copiado</div>
-    <script src="./app.js"></script>
-  </body>
+    <section id="notifications" class="screen hidden">
+      <div class="card">
+        <h2>Notificações</h2>
+        <div id="notifList"></div>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
 </html>

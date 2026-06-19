@@ -1,19 +1,9 @@
 {
   "name": "Leva Brasa",
-  "short_name": "Brasa",
-  "description": "Transporte brasileiro em Claremorris e regiao ate 40 km.",
-  "start_url": "./index.html",
-  "scope": "./",
+  "short_name": "Leva Brasa",
+  "start_url": ".",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#fffaf0",
-  "theme_color": "#148a55",
-  "icons": [
-    {
-      "src": "./assets/icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "background_color": "#f3f0df",
+  "theme_color": "#23915d",
+  "icons": []
 }
