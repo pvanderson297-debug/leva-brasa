@@ -3,6 +3,7 @@ const destination = document.querySelector("#destination");
 const passengers = document.querySelector("#passengers");
 const time = document.querySelector("#time");
 const bags = document.querySelector("#bags");
+const rideNote = document.querySelector("#rideNote");
 const distanceText = document.querySelector("#distanceText");
 const priceText = document.querySelector("#priceText");
 const clientPriceText = document.querySelector("#clientPriceText");
@@ -43,7 +44,11 @@ const driverLicenseNumber = document.querySelector("#driverLicenseNumber");
 const driverLicenseCategory = document.querySelector("#driverLicenseCategory");
 const driverLicenseExpiry = document.querySelector("#driverLicenseExpiry");
 const driverLicensePhoto = document.querySelector("#driverLicensePhoto");
+const driverLicensePhotoName = document.querySelector("#driverLicensePhotoName");
+const driverLicensePhotoPreview = document.querySelector("#driverLicensePhotoPreview");
 const driverSelfie = document.querySelector("#driverSelfie");
+const driverSelfieName = document.querySelector("#driverSelfieName");
+const driverSelfiePreview = document.querySelector("#driverSelfiePreview");
 const vehicleYear = document.querySelector("#vehicleYear");
 const vehicleColor = document.querySelector("#vehicleColor");
 const vehicleSeats = document.querySelector("#vehicleSeats");
@@ -205,6 +210,8 @@ const defaultAppConfig = {
 let mode = "now";
 let signupType = "passageiro";
 let editingCityIndex = null;
+let driverLicenseUpload = null;
+let driverSelfieUpload = null;
 
 const tripStatuses = [
   "aguardando_motorista",
@@ -480,15 +487,37 @@ function renderSession() {
     sessionLabel.textContent = "Visitante";
     sessionHint.textContent = "Cadastre-se ou entre para usar o app.";
     sessionLogoutButton.style.display = "none";
+    updateRoleVisibility();
     return;
   }
 
-  const role = currentSession.role === "motorista" ? "Motorista" : "Passageiro";
+  const role = currentSession.role === "motorista" ? "Motorista" : currentSession.role === "admin" ? "Admin" : "Passageiro";
   sessionLabel.textContent = `${role}: ${currentSession.name}`;
-  sessionHint.textContent = currentSession.role === "motorista"
+  sessionHint.textContent = currentSession.role === "admin"
+    ? "Painel administrativo liberado."
+    : currentSession.role === "motorista"
     ? "Area do motorista liberada neste aparelho."
     : "Suas viagens aparecem somente para voce.";
   sessionLogoutButton.style.display = "grid";
+  updateRoleVisibility();
+}
+
+function updateRoleVisibility() {
+  const role = currentSession ? currentSession.role : "";
+  const passengerOnly = [document.querySelector(".ride-panel"), document.querySelector(".trips-panel")].filter(Boolean);
+  const driverOnly = [document.querySelector(".driver-panel")].filter(Boolean);
+  const signupPanel = document.querySelector(".signup-panel");
+  const driversPreview = document.querySelector(".drivers");
+
+  passengerOnly.forEach((node) => {
+    node.style.display = !role || role === "passageiro" ? "" : "none";
+  });
+  driverOnly.forEach((node) => {
+    node.style.display = !role || role === "motorista" ? "" : "none";
+  });
+  if (signupPanel) signupPanel.style.display = role ? "none" : "";
+  if (driversPreview) driversPreview.style.display = role ? "none" : "";
+  if (adminLogin) adminLogin.style.display = adminUnlocked ? "none" : role === "motorista" || role === "passageiro" ? "none" : "grid";
 }
 
 function activeNotificationScope() {
@@ -689,7 +718,8 @@ async function syncFromApi() {
 
 function updateAdminVisibility() {
   if (!adminLogin || !adminContent) return;
-  adminLogin.style.display = adminUnlocked ? "none" : "grid";
+  const userLogged = currentSession && ["passageiro", "motorista"].includes(currentSession.role);
+  adminLogin.style.display = adminUnlocked || userLogged ? "none" : "grid";
   adminContent.classList.toggle("show", adminUnlocked);
 }
 
@@ -753,12 +783,17 @@ async function saveUserAccount(type) {
   const existingIndex = users.findIndex((user) => normalizePhone(user.telefone) === normalizedPhone);
   const user = {
     tipo: type,
+    tipoUsuario: type,
     nome: signupName.value.trim(),
     nomeCompleto: signupName.value.trim(),
     telefone: phone,
     telefoneWhatsApp: phone,
     email,
     cidade: signupTown.value,
+    pais: city ? city.pais : loadAppConfig().paisPadrao,
+    estadoOuRegiao: city ? city.estadoOuRegiao : "",
+    regiao: city ? city.estadoOuRegiao : "",
+    cidadePrincipal: signupTown.value,
     status: type === "motorista" ? "aguardando" : "ativo",
     historicoViagens: [],
     senhaHash: await hashPassword(signupPassword.value),
@@ -854,6 +889,15 @@ function renderAdminDrivers() {
         ? `${driver.veiculo.marca} ${driver.veiculo.modelo} · ${driver.veiculo.placa}`
         : "Veiculo nao informado";
 
+      const licenseFile = driver.fotoHabilitacaoFrente || driver.fotoHabilitacao;
+      const selfieFile = driver.selfieMotorista;
+      const licensePreview = licenseFile && String(licenseFile.tipo || "").startsWith("image/")
+        ? `<img class="admin-doc-preview" src="${escapeHtml(licenseFile.base64)}" alt="Foto habilitacao" />`
+        : "";
+      const selfiePreview = selfieFile && String(selfieFile.tipo || "").startsWith("image/")
+        ? `<img class="admin-doc-preview" src="${escapeHtml(selfieFile.base64)}" alt="Selfie motorista" />`
+        : "";
+
       return `
         <article class="admin-driver-card">
           <div>
@@ -862,6 +906,12 @@ function renderAdminDrivers() {
           </div>
           <span>${escapeHtml(driver.telefone)} · ${escapeHtml(driver.cidade)} · ${escapeHtml(onlineText)}</span>
           <span>${escapeHtml(vehicle)}</span>
+          <span>Email: ${escapeHtml(driver.email || "Nao informado")}</span>
+          <span>Habilitacao: ${escapeHtml(driver.numeroHabilitacao || "Nao informado")} - validade ${escapeHtml(driver.validadeHabilitacao || "Nao informada")}</span>
+          <span>Arquivo habilitacao: ${escapeHtml((licenseFile && licenseFile.nome) || "Nao enviado")}</span>
+          ${licensePreview}
+          <span>Selfie: ${escapeHtml((selfieFile && selfieFile.nome) || "Nao enviada")}</span>
+          ${selfiePreview}
           <span>Atende: ${escapeHtml((driver.cidadesAtendidas || [driver.cidadePrincipal || driver.cidade]).filter(Boolean).join(", ") || "Nao informado")}</span>
           <span>IBAN: ${escapeHtml(driver.iban || "Nao informado")}</span>
           <div class="admin-actions">
@@ -1103,7 +1153,7 @@ function renderDriverArea() {
     const isOpen = trip.status === "aguardando_motorista";
     const isMine = normalizePhone(trip.motoristaTelefone || trip.driverPhone) === normalizePhone(currentSession.phone);
     const sameArea = driverAttendsCity(driver, trip.cidade || trip.cidadePrincipal || trip.origem || trip.origin);
-    return isMine || (isOpen && sameArea);
+    return isMine || (isOpen && sameArea && driverIsApprovedOnline(driver));
   });
 
   driverTripsList.innerHTML = driverTrips.length
@@ -1153,7 +1203,7 @@ function renderTripCard(trip, viewMode = "client") {
     const driverPaidButton = trip.status === "finalizada" && (tripDriverName || tripDriverPhone) && trip.driverPaymentStatus !== "pago"
       ? `<button type="button" data-trip-action="driver-paid" data-trip-id="${trip.id}">Motorista pago</button>`
       : "";
-    const confirmPassengerButton = !trip.pagamentoClienteConfirmado
+    const confirmPassengerButton = trip.status === "aguardando_pagamento_cliente" && !trip.pagamentoClienteConfirmado
       ? `<button type="button" data-trip-action="confirm-client-payment" data-trip-id="${trip.id}">Confirmar pagamento do passageiro</button>`
       : "";
     const confirmDriverButton = trip.status === "aguardando_pagamento_motorista" && !trip.pagamentoMotoristaConfirmado
@@ -1164,7 +1214,6 @@ function renderTripCard(trip, viewMode = "client") {
       : "";
     actions = `
       <div class="trip-actions">
-        <button type="button" data-trip-action="assign" data-trip-id="${trip.id}">Atribuir</button>
         ${confirmPassengerButton}
         ${confirmDriverButton}
         ${cancelAdminButton}
@@ -1248,6 +1297,7 @@ function renderTripCard(trip, viewMode = "client") {
       </header>
       <p>${escapeHtml(tripDate)} · ${escapeHtml(trip.time)} · ${trip.passengers} pessoas · ${trip.distance} km</p>
       ${adminMode && tripPassengerName ? `<p>Cliente: ${escapeHtml(tripPassengerName)} - ${escapeHtml(tripPassengerPhone || "")}</p>` : ""}
+      ${trip.observacao ? `<p>Observacao: ${escapeHtml(trip.observacao)}</p>` : ""}
       <p>${escapeHtml(driverText)}</p>
       <div class="trip-mini-map" style="--progress: ${progress}%">
         <i class="trip-pin start"></i>
@@ -1401,6 +1451,7 @@ function createTrip() {
     time: time.value,
     passengers: Number(passengers.value || 1),
     hasBags: bags.checked,
+    observacao: rideNote ? rideNote.value.trim() : "",
     distance,
     clientPrice: split.clientPrice,
     driverPrice: split.driverPrice,
@@ -1439,6 +1490,7 @@ function createTrip() {
   notifyAdmin("Nova viagem criada", `${trip.passageiroNome} solicitou ${trip.origem} para ${trip.destino}.`, trip.id);
   notifyAvailableDrivers(trip);
   saveTrips(trips);
+  if (rideNote) rideNote.value = "";
   renderTrips();
   renderDriverArea();
   showToast("Viagem solicitada no app");
@@ -1628,6 +1680,53 @@ function showToast(message = "Pedido copiado") {
   window.setTimeout(() => toast.classList.remove("show"), 1700);
 }
 
+function readUploadFile(input, allowedTypes, previewNode, nameNode) {
+  const file = input && input.files ? input.files[0] : null;
+  if (!file) return Promise.resolve(null);
+  if (!allowedTypes.includes(file.type)) {
+    showToast("Arquivo nao permitido");
+    input.value = "";
+    return Promise.resolve(null);
+  }
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const upload = {
+        nome: file.name,
+        tipo: file.type,
+        tamanho: file.size,
+        base64: reader.result
+      };
+      if (nameNode) nameNode.textContent = file.name;
+      if (previewNode) {
+        const isImage = file.type.startsWith("image/");
+        previewNode.src = isImage ? reader.result : "";
+        previewNode.classList.toggle("show", isImage);
+      }
+      resolve(upload);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function resetDriverUploads() {
+  driverLicenseUpload = null;
+  driverSelfieUpload = null;
+  if (driverLicensePhoto) driverLicensePhoto.value = "";
+  if (driverSelfie) driverSelfie.value = "";
+  if (driverLicensePhotoName) driverLicensePhotoName.textContent = "Nenhum arquivo enviado";
+  if (driverSelfieName) driverSelfieName.textContent = "Nenhum arquivo enviado";
+  if (driverLicensePhotoPreview) {
+    driverLicensePhotoPreview.src = "";
+    driverLicensePhotoPreview.classList.remove("show");
+  }
+  if (driverSelfiePreview) {
+    driverSelfiePreview.src = "";
+    driverSelfiePreview.classList.remove("show");
+  }
+}
+
 async function loginDriver() {
   const phone = driverLoginPhone ? driverLoginPhone.value.trim() : "";
   const password = driverLoginPassword ? driverLoginPassword.value : "";
@@ -1708,6 +1807,11 @@ async function toggleDriverOnline() {
     return;
   }
 
+  if (driver.motoristaStatus === "ocupado") {
+    showToast("Finalize sua corrida atual antes de ficar online.");
+    return;
+  }
+
   if (driver.motoristaStatus === "online") {
     driver.motoristaStatus = "offline";
     driver.online = false;
@@ -1741,14 +1845,19 @@ async function registerDriver() {
   const licenseNumber = driverLicenseNumber ? driverLicenseNumber.value.trim() : "";
   const licenseCategory = driverLicenseCategory ? driverLicenseCategory.value.trim() : "";
   const licenseExpiry = driverLicenseExpiry ? driverLicenseExpiry.value : "";
-  const licensePhoto = driverLicensePhoto ? driverLicensePhoto.value.trim() : "";
-  const selfie = driverSelfie ? driverSelfie.value.trim() : "";
+  const licensePhoto = driverLicenseUpload;
+  const selfie = driverSelfieUpload;
   const year = vehicleYear ? vehicleYear.value : "";
   const color = vehicleColor ? vehicleColor.value.trim() : "";
   const seats = vehicleSeats ? Number(vehicleSeats.value || 4) : 4;
 
-  if (!name || !phone || !brand || !model || !plate || !iban) {
-    showToast("Preencha motorista, veiculo e IBAN");
+  if (!name || !phone || !brand || !model || !plate || !iban || !signupEmail.value.trim() || !licenseNumber || !licenseCategory || !licenseExpiry || !year || !color || !seats) {
+    showToast("Preencha todos os dados do motorista");
+    return;
+  }
+
+  if (!licensePhoto || !selfie) {
+    showToast("Envie habilitacao e selfie");
     return;
   }
 
@@ -1774,15 +1883,12 @@ async function registerDriver() {
     estadoOuRegiao: city ? city.estadoOuRegiao : "",
     regiao: city ? city.estadoOuRegiao : "",
     cidadePrincipal: signupTown.value,
-    pais: city ? city.pais : loadAppConfig().paisPadrao,
-    estadoOuRegiao: city ? city.estadoOuRegiao : "",
-    regiao: city ? city.estadoOuRegiao : "",
-    cidadePrincipal: signupTown.value,
     cidadesAtendidas: [signupTown.value],
     numeroHabilitacao: licenseNumber,
     categoriaHabilitacao: licenseCategory,
     validadeHabilitacao: licenseExpiry,
     fotoHabilitacaoFrente: licensePhoto,
+    fotoHabilitacao: licensePhoto,
     selfieMotorista: selfie,
     marcaVeiculo: brand,
     modeloVeiculo: model,
@@ -1840,8 +1946,7 @@ async function registerDriver() {
   if (driverLicenseNumber) driverLicenseNumber.value = "";
   if (driverLicenseCategory) driverLicenseCategory.value = "";
   if (driverLicenseExpiry) driverLicenseExpiry.value = "";
-  if (driverLicensePhoto) driverLicensePhoto.value = "";
-  if (driverSelfie) driverSelfie.value = "";
+  resetDriverUploads();
   if (vehicleYear) vehicleYear.value = "";
   if (vehicleColor) vehicleColor.value = "";
   if (vehicleSeats) vehicleSeats.value = "4";
@@ -1882,6 +1987,20 @@ signupTabs.forEach((tab) => {
   field.addEventListener("change", updateSignupLink);
 });
 
+if (driverLicensePhoto) {
+  driverLicensePhoto.addEventListener("change", async () => {
+    driverLicenseUpload = await readUploadFile(driverLicensePhoto, ["image/jpeg", "image/png", "application/pdf"], driverLicensePhotoPreview, driverLicensePhotoName);
+    updateSignupLink();
+  });
+}
+
+if (driverSelfie) {
+  driverSelfie.addEventListener("change", async () => {
+    driverSelfieUpload = await readUploadFile(driverSelfie, ["image/jpeg", "image/png"], driverSelfiePreview, driverSelfieName);
+    updateSignupLink();
+  });
+}
+
 if (adminDriversList) {
   adminDriversList.addEventListener("click", (event) => {
     const button = event.target && event.target.closest ? event.target.closest("button[data-driver-action]") : null;
@@ -1897,6 +2016,7 @@ if (adminDriversList) {
       driver.statusAprovacao = "aprovado";
       driver.motoristaStatus = driver.motoristaStatus === "suspenso" ? "suspenso" : "offline";
       driver.online = false;
+      notifyDriverByPhone(driver.telefone, "Cadastro aprovado", "Seu cadastro foi aprovado. Voce ja pode ficar online.");
     }
 
     if (button.dataset.driverAction === "suspend") {
@@ -1904,11 +2024,13 @@ if (adminDriversList) {
         driver.ativo = true;
         driver.statusAprovacao = "aprovado";
         driver.motoristaStatus = "offline";
+        notifyDriverByPhone(driver.telefone, "Cadastro reativado", "Seu cadastro foi reativado. Voce pode ficar online.");
       } else {
         driver.ativo = false;
         driver.statusAprovacao = "suspenso";
         driver.motoristaStatus = "suspenso";
         driver.online = false;
+        notifyDriverByPhone(driver.telefone, "Cadastro suspenso", "Seu cadastro foi suspenso pelo suporte.");
       }
     }
 
@@ -1917,6 +2039,7 @@ if (adminDriversList) {
       driver.statusAprovacao = "rejeitado";
       driver.motoristaStatus = "rejeitado";
       driver.online = false;
+      notifyDriverByPhone(driver.telefone, "Cadastro rejeitado", "Seu cadastro foi rejeitado pelo suporte.");
     }
 
     if (button.dataset.driverAction === "add-city") {
@@ -2332,7 +2455,10 @@ if (driverLogoutButton) {
 
 if (sessionLogoutButton) {
   sessionLogoutButton.addEventListener("click", () => {
+    adminUnlocked = false;
+    adminIsMain = false;
     clearSession();
+    updateAdminVisibility();
     showToast("Conta saiu");
   });
 }
@@ -2346,6 +2472,7 @@ if (adminLoginButton) {
 
     adminUnlocked = true;
     adminIsMain = adminEmail && adminEmail.value.trim().toLowerCase() === loadAppConfig().emailAdminPrincipal;
+    saveSession({ role: "admin", name: "Suporte", phone: "admin", email: adminEmail.value.trim().toLowerCase(), city: "", region: "", country: "" });
     populateAdminStatusFilter();
     updateAdminVisibility();
     renderAdminUsers();
@@ -2364,6 +2491,7 @@ if (adminLogoutButton) {
     adminIsMain = false;
     if (adminPassword) adminPassword.value = "";
     if (adminEmail) adminEmail.value = "";
+    clearSession();
     updateAdminVisibility();
     renderNotifications();
     renderFinance();

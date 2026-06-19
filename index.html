@@ -115,6 +115,10 @@
               <input id="bags" type="checkbox" />
               <span>Com malas ou compras grandes</span>
             </label>
+            <label class="field">
+              <span>Observacao opcional</span>
+              <input id="rideNote" type="text" placeholder="Ex: cadeira infantil, portao, malas..." />
+            </label>
           </form>
 
           <section class="mini-map-card" aria-label="Mapa pequeno de cobertura">
@@ -250,11 +254,15 @@
             <div class="split">
               <label class="field">
                 <span>Foto habilitacao frente</span>
-                <input id="driverLicensePhoto" type="text" placeholder="Nome do arquivo ou link" />
+                <input id="driverLicensePhoto" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" />
+                <small id="driverLicensePhotoName" class="upload-name">Nenhum arquivo enviado</small>
+                <img id="driverLicensePhotoPreview" class="upload-preview" alt="Previa da habilitacao" />
               </label>
               <label class="field">
                 <span>Selfie motorista</span>
-                <input id="driverSelfie" type="text" placeholder="Nome do arquivo ou link" />
+                <input id="driverSelfie" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" />
+                <small id="driverSelfieName" class="upload-name">Nenhum arquivo enviado</small>
+                <img id="driverSelfiePreview" class="upload-preview" alt="Previa da selfie" />
               </label>
             </div>
             <div class="split">
